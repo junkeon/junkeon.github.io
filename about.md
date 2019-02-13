@@ -7,10 +7,10 @@ permalink: /about
 <img src="{{ site.baseurl }}/assets/profile.jpg" title="Profile Picture" class="profile" >
 
 ## Education
-- 연세대학교 컴퓨터과학 학사졸
-- 연세대학교 컴퓨터과학 석사졸 (세부 전공 : 모바일 네트워킹)
+- 한국과학기술원(KAIST) 산업및시스템공학과 학사졸
+- 한국과학기술원(KAIST) 산업및시스템공학과 석사졸 (세부 전공 : 인공지능)
 
 ## Interests
-- Natural Language Processing
+- Speech
 - Deep Learning 
 

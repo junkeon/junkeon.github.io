@@ -9,17 +9,17 @@ exclude:
   - "/vendor/"
 
 # Site settings
-title: Y Rok's Blog
+title: JunKeon's Blog
 subtitle: "The blog page for my studies and projects"
-email: jyrok3357@gmail.com
-name: Youngrok Jang
+email: palex3012@gmail.com
+name: JunKeon Park
 description: >
   The blog page for my studies and projects
 # Base URL of site (i.e. /blog). It should always start with a slash,
 # and never end with a slash. Set it to a blank value if hosting at the
 # root of your server.
 baseurl: "" # the subpath of your site, e.g. /blog/
-url: "http://y-rok.github.io" # the base hostname & protocol for your site
+url: "http://junkeon.github.io" # the base hostname & protocol for your site
 cover: "/assets/header_image.jpg"
 # logo: "/assets/logo.png"
 
@@ -41,7 +41,7 @@ jekyll-archives:
     tag: '/tag/:name/'
 
 # Disqus comments
-disqus_shortname: y-rok
+disqus_shortname: junkeon
 
 # Google analytics
 ga_tracking_id: "UA-52150113-2"
@@ -75,18 +75,18 @@ social:
     username: TheBenCentra
     url: 
     desc: Follow me on Twitter
-    share: true
+    share: false
 
   - name: Facebook
     icon: facebook
     username: Young Rok Jang
     url: https://www.facebook.com/yrok.jang
     desc: Friend me on Facebook
-    share: true
+    share: false
 
   - name: GitHub
     icon: github
-    username: y-rok
+    username: junkeon
     url: https://github.com/y-rok
     desc: Fork me on GitHub
     share: false
@@ -96,14 +96,14 @@ social:
     username: Young Rok Jang
     url: https://www.linkedin.com/in/young-rok-jang-842aa194/
     desc: Connect with me on LinkedIn
-    share: true
+    share: false
 
   - name: Google+
     icon: google-plus
     username:
     url:
     desc: Add me to your Circles
-    share: true
+    share: false
 
   - name: YouTube
     icon: youtube

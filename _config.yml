@@ -79,7 +79,7 @@ social:
 
   - name: Facebook
     icon: facebook
-    username: Young Rok Jang
+    username: JunKeon Park
     url: https://www.facebook.com/junkeon.park
     desc: Friend me on Facebook
     share: false
@@ -93,7 +93,7 @@ social:
 
   - name: LinkedIn
     icon: linkedin
-    username: Young Rok Jang
+    username: JunKeon Park
     url: https://www.linkedin.com/in/junkeon-park-b1797417a/
     desc: Connect with me on LinkedIn
     share: false

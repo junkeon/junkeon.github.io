@@ -4,7 +4,7 @@ title: About
 permalink: /about
 ---
 
-<img src="{{ site.baseurl }}/assets/profile.jpg" title="Profile Picture" class="profile" >
+<img src="/assets/profile.jpg" title="Profile Picture" class="profile" >
 
 ## Education
 - 한국과학기술원(KAIST) 산업및시스템공학과 학사졸

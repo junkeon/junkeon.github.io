@@ -32,9 +32,9 @@
 	// FullHeight
 	var fullHeight = function() {
 		if ( !isiPad() && !isiPhone() ) {
-			$('.js-fullheight').css('height', $(window).height() - 49);
+			$('.js-fullheight').css('height', $(window).height() - 30);
 			$(window).resize(function(){
-				$('.js-fullheight').css('height', $(window).height() - 49);
+				$('.js-fullheight').css('height', $(window).height() - 30);
 			})
 		}
 	};
@@ -87,9 +87,7 @@
     			$('body').removeClass('offcanvas-visible');
     			$('.js-fh5co-nav-toggle').removeClass('active');
 				
-	    	}
-	    
-	    	
+	    	}	    	
 	    }
 		});
 
@@ -103,11 +101,8 @@
 		$('body').prepend('<a href="#" class="js-fh5co-nav-toggle fh5co-nav-toggle"><i></i></a>');
 
 		$('.left-menu li, .right-menu li').each(function(){
-
 			var $this = $(this);
-
 			$('#fh5co-offcanvas ul').append($this.clone());
-
 		});
 	};
 

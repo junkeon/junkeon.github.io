@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>GlowTTS experiment</title>
+  
+  <!-- Facebook and Twitter integration -->
+  <meta property="og:title" content=""/>
+  <meta property="og:image" content=""/>
+  <meta property="og:url" content=""/>
+  <meta property="og:site_name" content=""/>
+  <meta property="og:description" content=""/>
+  <meta name="twitter:title" content="" />
+  <meta name="twitter:image" content="" />
+  <meta name="twitter:url" content="" />
+  <meta name="twitter:card" content="" />
+
+</head>
+
+<body>		
+	<h1>Glow-TTS experiments demo</h1>
+	<h2>Reference</h2>
+	<h3>Glow-TTS: A Generative Flow for Text-to-Speech via Monotonic Alignment Search</h3>
+	<ul>
+		<li>Paper&nbsp; :&nbsp;<a href="https://arxiv.org/abs/2005.11129">https://arxiv.org/abs/2005.11129</a></li>
+		<li>Code&nbsp; &nbsp;:&nbsp;<a href="https://github.com/jaywalnut310/glow-tts">https://github.com/jaywalnut310/glow-tts</a></li>
+		<li>Demo&nbsp; :&nbsp;<a href="https://jaywalnut310.github.io/glow-tts-demo/index.html">https://jaywalnut310.github.io/glow-tts-demo/index.html</a></li>
+	</ul>
+	<h3>WaveGrad: Estimating Gradients for Waveform Generation</h3>
+	<ul>
+		<li>Paper :&nbsp;<a href="https://arxiv.org/abs/2009.00713">https://arxiv.org/abs/2009.00713</a></li>
+		<li>Code&nbsp; :&nbsp;<a href="https://github.com/ivanvovk/WaveGrad">https://github.com/ivanvovk/WaveGrad</a></li>
+		<li>Demo :&nbsp;<a href="https://wavegrad.github.io/">https://wavegrad.github.io/</a></li>
+	</ul>
+
+	<h2>Glow-TTS experiments</h2>
+	<h3>Abstract</h3>
+	mse, ctc loss를 이용하여 빠르고 정확하게 학습을 시켰다
+	50k씩만 학습, WaveGrad로 합성 (pwgan도 해봤는데, WG가 더 좋았음, 추후에 넣을 예정)
+	<h3>Glow-TTS structure</h3>
+	Glowtts 구조 그림
+	<h3>Glow-TTS alignment</h3>
+	MAS에 대한 설명
+	<h3>Glow-TTS experiment</h3>
+	MAS, MAS + MSE, CTC, CTC + MSE로 학습한 모델들의 성능을 파악하겠다.
+	추가로 mean only도 학습하였다.
+	<h2>Experiment Result</h2>
+    <table>
+        <tbody>
+            <tr>
+                <th></th>
+                <th>Mean Only - MAS</th>
+                <th>MAS</th>
+                <th>CTC</th>
+            </tr>
+            <tr>
+                
+            </tr>
+        </tbody>
+        
+        
+    </table>
+  
+  
+
+</body>
+
+</html>

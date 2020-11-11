@@ -23,7 +23,7 @@
 
 </head>
 
-<body>		
+<body style="padding:50px;">		
 	<h1>Glow-TTS experiments demo</h1>
 	<h2>Reference</h2>
 	<h3>Glow-TTS: A Generative Flow for Text-to-Speech via Monotonic Alignment Search</h3>
@@ -41,12 +41,11 @@
 
 	<h2>Glow-TTS experiments</h2>
 	<h3>Abstract</h3>
-	mse, ctc loss를 이용하여 빠르고 정확하게 학습을 시켰다
-	50k씩만 학습, WaveGrad로 합성 (pwgan도 해봤는데, WG가 더 좋았음, 추후에 넣을 예정)
+    Glow-TTS is a non-autoregressive text-to-speech(TTS) model without any guidance about alignment such as external aligners. Glow-TTS uses Monotonic Alignment Search(MAS) to calculate the best path matching between phoneme sequence and melspectrogram. However, MAS is inefficient and unstable because it searches only one optimal path. Therefore, I propose a more efficient and stable learning method by introducing Connectionist Temporal Classification(CTC) instead of MAS. In addition, like other TTS models, Mean Squared Error(MSE) loss is added and trained to obtain high quality. The following voices are the result of learning 50k iteration for the same data with difference combinations of losses. Every voices are synthesized with same WaveGrad vocoder. As you can see, CTC and MSE losses allow the model to be trained more stable and more efficeint.
 	<h3>Glow-TTS structure</h3>
-	Glowtts 구조 그림
+	<img src="images/glow-tts.png">
 	<h3>Glow-TTS alignment</h3>
-	MAS에 대한 설명
+	<img src="images/MAS_CTC.png">
 	<h3>Glow-TTS experiment</h3>
 	MAS, MAS + MSE, CTC, CTC + MSE로 학습한 모델들의 성능을 파악하겠다.
 	추가로 mean only도 학습하였다.

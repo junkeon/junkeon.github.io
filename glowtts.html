@@ -3,53 +3,77 @@
 
 <head>
 
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-  <title>GlowTTS experiment</title>
-  
-  <!-- Facebook and Twitter integration -->
-  <meta property="og:title" content=""/>
-  <meta property="og:image" content=""/>
-  <meta property="og:url" content=""/>
-  <meta property="og:site_name" content=""/>
-  <meta property="og:description" content=""/>
-  <meta name="twitter:title" content="" />
-  <meta name="twitter:image" content="" />
-  <meta name="twitter:url" content="" />
-  <meta name="twitter:card" content="" />
+    <title>GlowTTS experiment</title>
+
+    <!-- Facebook and Twitter integration -->
+    <meta property="og:title" content="" />
+    <meta property="og:image" content="" />
+    <meta property="og:url" content="" />
+    <meta property="og:site_name" content="" />
+    <meta property="og:description" content="" />
+    <meta name="twitter:title" content="" />
+    <meta name="twitter:image" content="" />
+    <meta name="twitter:url" content="" />
+    <meta name="twitter:card" content="" />
 
 </head>
 
-<body style="padding:50px;">		
-	<h1>Glow-TTS experiments demo</h1>
-	<h2>Reference</h2>
-	<h3>Glow-TTS: A Generative Flow for Text-to-Speech via Monotonic Alignment Search</h3>
-	<ul>
-		<li>Paper&nbsp; :&nbsp;<a href="https://arxiv.org/abs/2005.11129">https://arxiv.org/abs/2005.11129</a></li>
-		<li>Code&nbsp; &nbsp;:&nbsp;<a href="https://github.com/jaywalnut310/glow-tts">https://github.com/jaywalnut310/glow-tts</a></li>
-		<li>Demo&nbsp; :&nbsp;<a href="https://jaywalnut310.github.io/glow-tts-demo/index.html">https://jaywalnut310.github.io/glow-tts-demo/index.html</a></li>
-	</ul>
-	<h3>WaveGrad: Estimating Gradients for Waveform Generation</h3>
-	<ul>
-		<li>Paper :&nbsp;<a href="https://arxiv.org/abs/2009.00713">https://arxiv.org/abs/2009.00713</a></li>
-		<li>Code&nbsp; :&nbsp;<a href="https://github.com/ivanvovk/WaveGrad">https://github.com/ivanvovk/WaveGrad</a></li>
-		<li>Demo :&nbsp;<a href="https://wavegrad.github.io/">https://wavegrad.github.io/</a></li>
-	</ul>
+<body style="padding:50px; max-width:1000px ; display: block; margin: 0 auto; ">
+    <h1>Glow-TTS experiments demo</h1>
+    <h2>Reference</h2>
+    <h3>Glow-TTS: A Generative Flow for Text-to-Speech via Monotonic Alignment Search</h3>
+    <ul>
+        <li>Paper : <a href="https://arxiv.org/abs/2005.11129">https://arxiv.org/abs/2005.11129</a></li>
+        <li>Code : <a href="https://github.com/jaywalnut310/glow-tts">https://github.com/jaywalnut310/glow-tts</a></li>
+        <li>Demo : <a href="https://jaywalnut310.github.io/glow-tts-demo/index.html">https://jaywalnut310.github.io/glow-tts-demo/index.html</a></li>
+    </ul>
 
-	<h2>Glow-TTS experiments</h2>
-	<h3>Abstract</h3>
-    Glow-TTS is a non-autoregressive text-to-speech(TTS) model without any guidance about alignment such as external aligners. Glow-TTS uses Monotonic Alignment Search(MAS) to calculate the best path matching between phoneme sequence and melspectrogram. However, MAS is inefficient and unstable because it searches only one optimal path. Therefore, I propose a more efficient and stable learning method by introducing Connectionist Temporal Classification(CTC) instead of MAS. In addition, like other TTS models, Mean Squared Error(MSE) loss is added and trained to obtain high quality. The following voices are the result of learning 50k iteration for the same data with difference combinations of losses. Every voices are synthesized with same WaveGrad vocoder. As you can see, CTC and MSE losses allow the model to be trained more stable and more efficeint.
-	<h3>Glow-TTS structure</h3>
-	<img src="images/glow-tts.png">
-	<h3>Glow-TTS alignment</h3>
-	<img src="images/MAS_CTC.png">
-	<h3>Glow-TTS experiment</h3>
-	MAS, MAS + MSE, CTC, CTC + MSE로 학습한 모델들의 성능을 파악하겠다.
-	추가로 mean only도 학습하였다.
-	<h2>Experiment Result</h2>
+    <h3>WaveGrad: Estimating Gradients for Waveform Generation</h3>
+    <ul>
+        <li>Paper : <a href="https://arxiv.org/abs/2009.00713">https://arxiv.org/abs/2009.00713</a></li>
+        <li>Code : <a href="https://github.com/ivanvovk/WaveGrad">https://github.com/ivanvovk/WaveGrad</a></li>
+        <li>Demo : <a href="https://wavegrad.github.io/">https://wavegrad.github.io/</a></li>
+    </ul>
+
+    <h3>Connectionist Temporal Classification: Labelling Unsegmented Sequence Data with Recurrent Neural Networks</h3>
+    <ul>
+        <li>Paper : <a href="https://www.cs.toronto.edu/~graves/icml_2006.pdf">https://www.cs.toronto.edu/~graves/icml_2006.pdf</a></li>
+        <li>Code : <a href="https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html">https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html</a></li>
+    </ul>
+
+    <h2>Glow-TTS experiments</h2>
+    <h3>Abstract</h3>
+    Glow-TTS is a non-autoregressive text-to-speech(TTS) model without any guidance about alignment such as external aligners. Glow-TTS uses Monotonic Alignment Search(MAS) to calculate the best path matching between text sequence and melspectrogram. However, MAS is inefficient and unstable because it searches only one optimal path. Therefore, I propose a more efficient and stable learning method by introducing Connectionist Temporal Classification(CTC) instead of MAS. In addition, like other TTS models, Mean Squared Error(MSE) loss is added and trained to obtain high quality.
+    
+    <h3>Glow-TTS structure</h3>    
+    Like otehr non-autoregressive TTS model, Glow-TTS is largely composed of three parts; <b>text encoder</b>, <b>duration predictor</b>, <b>melspectrogram decoder</b>. 
+    
+    The <b>encoder</b> extracts the linguistic information from text sequence. The text is in the form of phonemes or graphemes. The duration predictor predicts the length of each phoneme based on linguistic information from the encoder. 
+    
+    In other non-autoregressive models, a duration predictor is trained through a extra alignment label, such as teacher model's alignment or external aligner. In Glow-TTS, however, the <b>duration predictor</b> is trained through alignment information from an optimal path obtained through MAS. 
+    
+    The <b>decoder</b> is a flow-based glow model, so it is invertible between the melspectrogram and z. During training, the decoder converts the melspectrogram to z and is trained to match the linguistic information extracted from the encoder well. On the contrary, during inference, the linguistic information extracted from the encoder is duplicated for a duration and then converted into a melspectrogram through a decoder.
+    
+    
+    <img src="images/glow-tts.svg" style="display: block; margin: 0 auto; max-width:700px">    
+    
+    <h3>Glow-TTS alignment</h3>
+    MAS is the most important part of Glow-TTS. Due to MAS, Glow-TTS does not require extra alignment information between text and melspectrogram. MAS calculates the likelihood between the text information from encoder and melspectrogram information from decoder. Based on the likelihood, MAS searches for the most optimal path, and matches the text sequence and melspectrogram. In MAS, after calculating the likelihood between each phoneme and mel frame, based on this, greedyly calculates the Q value to search for an optimal path.
+
+    <img src="images/mas_ctc.svg" style="display: block; margin: 0 auto;">
+    
+    
+    
+    <h3>Glow-TTS experiment</h3>
+    MAS, MAS + MSE, CTC, CTC + MSE로 학습한 모델들의 성능을 파악하겠다.
+    추가로 mean only도 학습하였다.
+    <h2>Experiment Result</h2>
+    The following voices are the result of learning 50k iteration for the same data with difference combinations of losses. Every voices are synthesized with same WaveGrad vocoder. As you can see, CTC and MSE losses allow the model to be trained more stable and more efficeint.
     <table>
         <tbody>
             <tr>
@@ -59,14 +83,15 @@
                 <th>CTC</th>
             </tr>
             <tr>
-                
+
             </tr>
         </tbody>
-        
-        
+
+
+
     </table>
-  
-  
+
+
 
 </body>
 

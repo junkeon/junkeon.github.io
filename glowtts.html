@@ -51,11 +51,11 @@
     Glow-TTS is a non-autoregressive text-to-speech(TTS) model without any guidance about alignment such as external aligners. Glow-TTS uses Monotonic Alignment Search(MAS) to calculate the best path matching between text sequence and melspectrogram. However, MAS is inefficient and unstable because it searches only one optimal path. Therefore, I propose a more efficient and stable learning method by introducing Connectionist Temporal Classification(CTC) instead of MAS. In addition, like other TTS models, Mean Squared Error(MSE) loss is added and trained to obtain high quality.
     
     <h3>Glow-TTS structure</h3>    
-    Like otehr non-autoregressive TTS model, Glow-TTS is largely composed of three parts; <b>text encoder</b>, <b>duration predictor</b>, <b>melspectrogram decoder</b>. 
+    Like otehr non-autoregressive TTS model, Glow-TTS is largely composed of three parts; <b>text encoder</b>, <b>duration predictor</b>, <b>melspectrogram decoder</b>. <br><br>
     
-    The <b>encoder</b> extracts the linguistic information from text sequence. The text is in the form of phonemes or graphemes. The duration predictor predicts the length of each phoneme based on linguistic information from the encoder. 
+    The <b>encoder</b> extracts the linguistic information from text sequence. The text is in the form of phonemes or graphemes. The previous TTS model, like Tacotron, use variation of RNN(LSTM, GRU) to encoder text sequence. TTS models after tacotron, like transformer TTS, fastspeech, and Glow-TTS, are calculated in parallel using an encoder with a self-attention structure instead of an RNN. <br><br>
     
-    In other non-autoregressive models, a duration predictor is trained through a extra alignment label, such as teacher model's alignment or external aligner. In Glow-TTS, however, the <b>duration predictor</b> is trained through alignment information from an optimal path obtained through MAS. 
+    The duration predictor predicts the length of each phoneme based on linguistic information from the encoder. In other non-autoregressive models, a duration predictor is trained through a extra alignment label, such as teacher model's alignment or external aligner. In Glow-TTS, however, the <b>duration predictor</b> is trained through alignment information from an optimal path obtained through MAS. <br><br>
     
     The <b>decoder</b> is a flow-based glow model, so it is invertible between the melspectrogram and z. During training, the decoder converts the melspectrogram to z and is trained to match the linguistic information extracted from the encoder well. On the contrary, during inference, the linguistic information extracted from the encoder is duplicated for a duration and then converted into a melspectrogram through a decoder.
     
@@ -63,8 +63,11 @@
     <img src="images/glow-tts.svg" style="display: block; margin: 0 auto; max-width:700px">    
     
     <h3>Glow-TTS alignment</h3>
-    MAS is the most important part of Glow-TTS. Due to MAS, Glow-TTS does not require extra alignment information between text and melspectrogram. MAS calculates the likelihood between the text information from encoder and melspectrogram information from decoder. Based on the likelihood, MAS searches for the most optimal path, and matches the text sequence and melspectrogram. In MAS, after calculating the likelihood between each phoneme and mel frame, based on this, greedyly calculates the Q value to search for an optimal path.
+    MAS is the most important part of Glow-TTS. Due to MAS, Glow-TTS does not require extra alignment information between text and melspectrogram. MAS calculates the likelihood between the text information from encoder and melspectrogram information from decoder. Based on the likelihood, MAS searches for the most optimal path, and matches the text sequence and melspectrogram. In MAS, after calculating the likelihood between each phoneme and mel frame, based on this, greedyly calculates the Q value to search for an optimal path. <br><br>
+    
+    This MAS method is unstable and inefficient in that it greedily searches only one optimal path. In particular, since both the encoder and the decoder were less trained in the early training period, the optimal path searched by MAS cannot be trusted. Because this optimal path affects learning for both encoder, decoder and duration predictor, the learning of the entire model becomes unstable. In addition, it is inefficient because it is difficult to search for various paths by training only one path at a time. <br><br>
 
+    On the other hand, CTC method is more efficient and stable than MAS because it searches all possible paths. CTC calculates probability values for all possible paths, and considers all paths by calculating the sum of weights for possible paths using this as a weight. Therefore, unlike the MAS method, it can learn stably even at the beginning of learning, and it is efficient because it considers all possible paths.
     <img src="images/mas_ctc.svg" style="display: block; margin: 0 auto;">
     
     

@@ -24,7 +24,413 @@
 </head>
 
 <body style="padding:50px; max-width:1000px ; display: block; margin: 0 auto; ">
-    <h1>Glow-TTS experiments demo</h1>
+    <h1>Glow-TTS with CTC alignment and MSE loss</h1>
+
+
+    <h2>Abstract</h2>
+    Glow-TTS is a non-autoregressive text-to-speech(TTS) model without any guidance about alignment such as an external aligner. Glow-TTS uses Monotonic Alignment Search(MAS) to calculate the best path matching between text sequence and melspectrogram. However, MAS is inefficient and unstable because it searches only one optimal path. Therefore, I propose a more efficient and stable training method by introducing Connectionist Temporal Classification(CTC) instead of MAS. In addition, like other TTS models, Mean Squared Error(MSE) loss of melspectrogram is added and trained to make more stable and more efficient. Glow-TTS models are compared to find out the effect of CTC alignment and MSE loss after training for a short period under the same conditions.
+
+    <h2>Glow-TTS Background</h2>
+    <h3>Glow-TTS structure</h3>
+    Like otehr non-autoregressive TTS model, Glow-TTS is largely composed of three parts; <b>text encoder</b>, <b>duration predictor</b>, <b>melspectrogram decoder</b>. <br><br>
+
+    The <b>encoder</b> extracts the linguistic information from text sequence. The text is in the form of phonemes or graphemes. The previous TTS model, like Tacotron, use variation of RNN(LSTM, GRU) to encoder text sequence. TTS models after tacotron, like transformer TTS, fastspeech, and Glow-TTS, are calculated in parallel using an encoder with a self-attention structure instead of an RNN. <br><br>
+
+    The duration predictor predicts the length of each phoneme based on linguistic information from the encoder. In other non-autoregressive models, a duration predictor is trained through a extra alignment label, such as teacher model's alignment or external aligner. In Glow-TTS, however, the <b>duration predictor</b> is trained through alignment information from an optimal path obtained through MAS. <br><br>
+
+    The <b>decoder</b> is a flow-based glow model, so it is invertible between the melspectrogram and z. During training, the decoder converts the melspectrogram to z and is trained to match the linguistic information extracted from the encoder well. On the contrary, during inference, the linguistic information extracted from the encoder is duplicated for a duration and then converted into a melspectrogram through a decoder.
+
+    <img src="images/glow-tts.svg" style="display: block; margin: 0 auto; max-width:700px">
+
+    <h2>Glow-TTS with better training</h2>
+    <h3>Glow-TTS alignment</h3>
+    MAS is the most important part of Glow-TTS. Due to MAS, Glow-TTS does not require extra alignment information between text and melspectrogram. MAS calculates the likelihood between the text information from encoder and melspectrogram information from decoder. Based on the likelihood, MAS searches for the most optimal path, and matches the text sequence and melspectrogram. In MAS, after calculating the likelihood between each phoneme and mel frame, based on this, greedyly calculates the Q value to search for an optimal path. <br><br>
+
+    This MAS method is unstable and inefficient in that it greedily searches only one optimal path. In particular, since both the encoder and the decoder were less trained in the early training period, the optimal path searched by MAS cannot be trusted. Because this optimal path affects training for both encoder, decoder and duration predictor, the training of the entire model becomes unstable. In addition, it is inefficient because it is difficult to search for various paths by training only one path at a time. <br><br>
+
+    On the other hand, CTC method is more efficient and stable than MAS because it searches all possible paths. CTC calculates probability values for all possible paths, and considers all paths by calculating the sum of weights for possible paths using this as a weight. Therefore, unlike the MAS method, it can train stably even at the beginning of training, and it is efficient because it considers all possible paths.
+    <img src="images/mas_ctc.svg" style="display: block; margin: 0 auto;">
+
+
+    <h3>Glow-TTS MSE loss</h3>
+    The loss function of Glow-TTS consists of 3 parts; log likelihood matched alignment, log determinant of glow decoder, MSE loss of duration. Among them, the MSE loss of duration is designed to affect only the duration predictor because the gradient is not connected to the encoder. The result of the decoder affects the matching result of the alignment. Therefore, the encoder is directly affected by the log likelihood and indirectly by the log determinant. On the other hand, the decoder is directly affected by both log likelihood and log determinant. <br><br>
+
+    The main loss function of most TTS models is the MSE loss of the melspectrogram. This type of loss term is a term derived from the log likelihood of the normal distribution assuming unit variance with the target melspectrogram as mean. Since the TTS model is basically a generative model that generates data called melspectrogram when a text input is given, this type of MSE loss is mainly used for loss function. On the other hand, since the glow-TTS model uses an invertible glow-based decoder, the model is trained by comparing latent variables rather than melspectrograms.<br><br>
+
+    By adding MSE loss to the Glow-TTS model, more efficient and sharp training can be performed. Density of data space are changed through the processes of transforming melspectrogram to latent variable in the Glow-TTS decoder. Therefore, loss of latent variables may not be uniformly affected in the melspectrogram space due to distortion during the transforming process. However, by adding the MSE loss for the space of the melspectrogram, the performance of the synthesis result can be improved more efficiently and directly. <br><br>
+    <img src="images/normal_flow.svg" style="display: block; margin: 0 auto;">
+
+    <h2>Experiment</h2>
+
+    <h3>Glow-TTS compare</h3>
+    The performance of models according to the alignment method of Glow-TTS was compared. In addition, the performance according to the MSE loss was also compared. In the original Glow-TTS paper, the sigma from the encoder was assumed to be 1, and only the mean was trained. However, in order to increase the degree of freedom of the model, the sigma of the model was also trained like mean. As suggested in the original paper, the model without training sigma was also trained and compared.<br><br>
+
+    In the experiment, Glow-TTS was trained under a total of four different conditions depending on whether MAS or CTC was used as an alignment and whether or not MSE loss was trained. In addition, for the baseline, a model trained with MAS under the mean only condition that was tested in the original paper was also trained. Models with a total of 5 conditions were trained and compared for the same data after only 50k iteration. <br><br>
+
+    To compare the models' performance, a single female speaker's voice was used. The total length of the voice is about 9 hours, and consists of monologue and dialogue. 10% of the total data were randomly selected, configured as a test set, and the model was trained with the remaining data. As a vocoder, WaveGrad trained on the same data that Glow-TTS was trained was used.
+
+    <h3>Monologue</h3>
+    <br>
+
+    <table align="center">
+        <p align="center"><b>이천십오년 기준으로 이탈리아 클럽팀이 압도적으로 우승 경력이 많으니 그 팀의 전략을 배워야 해요.</b></p>
+        <tr align="center">
+            <td width="200"></td>
+            <td>Ground Truth(original wav)</td>
+            <td>Ground Truth(WaveGrad)</td>
+        </tr>
+        <tr>
+            <td align="center"><b>Ground Truth</b></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/032_ori.wav">
+                </audio></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/032_gt_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>MAS, No MSE, Mean only(baseline)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align="center"><b>Baseline</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/032_mle_om_wg.wav">
+                </audio></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="center">MAS, No MSE</td>
+            <td align="center">MAS, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>MAS alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/032_lmy_mle_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/032_lmy_mle_mse_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>CTC, No MSE</td>
+            <td>CTC, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>CTC alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/032_lmy_ctc_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/032_lmy_ctc_mse_wg.wav">
+                </audio></td>
+        </tr>
+    </table>
+
+    <br><br>
+
+    <table align="center">
+        <p align="center"><b>코코넛 워터나 코코넛 밀크 등을 부어 잔얼음을 띄웠어요.</b></p>
+        <tr align="center">
+            <td width="200"></td>
+            <td>Ground Truth(original wav)</td>
+            <td>Ground Truth(WaveGrad)</td>
+        </tr>
+        <tr>
+            <td align="center"><b>Ground Truth</b></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/052_ori.wav">
+                </audio></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/052_gt_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>MAS, No MSE, Mean only(baseline)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align="center"><b>Baseline</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/052_mle_om_wg.wav">
+                </audio></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="center">MAS, No MSE</td>
+            <td align="center">MAS, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>MAS alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/052_lmy_mle_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/052_lmy_mle_mse_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>CTC, No MSE</td>
+            <td>CTC, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>CTC alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/052_lmy_ctc_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/052_lmy_ctc_mse_wg.wav">
+                </audio></td>
+        </tr>
+    </table>
+
+    <br><br>
+
+    <table align="center">
+        <p align="center"><b>여성 다이버가 수중 마이크로 물고기에 대해 설명해주며 먹이를 주는 수중 쇼와 수족관 뒤편을 탐험하는 가이드 투어 등이 있다.</b></p>
+        <tr align="center">
+            <td width="200"></td>
+            <td>Ground Truth(original wav)</td>
+            <td>Ground Truth(WaveGrad)</td>
+        </tr>
+        <tr>
+            <td align="center"><b>Ground Truth</b></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/069_ori.wav">
+                </audio></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/069_gt_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>MAS, No MSE, Mean only(baseline)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align="center"><b>Baseline</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/069_mle_om_wg.wav">
+                </audio></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="center">MAS, No MSE</td>
+            <td align="center">MAS, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>MAS alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/069_lmy_mle_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/069_lmy_mle_mse_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>CTC, No MSE</td>
+            <td>CTC, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>CTC alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/069_lmy_ctc_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/069_lmy_ctc_mse_wg.wav">
+                </audio></td>
+        </tr>
+    </table>
+
+    <h3>Dilogue</h3>
+    <br>
+
+    <table align="center">
+        <p align="center"><b>검색해보니 다양하게 나오는걸요? 당신도 한번 검색해보세요.</b></p>
+        <tr align="center">
+            <td width="200"></td>
+            <td>Ground Truth(original wav)</td>
+            <td>Ground Truth(WaveGrad)</td>
+        </tr>
+        <tr>
+            <td align="center"><b>Ground Truth</b></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/179_ori.wav">
+                </audio></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/179_gt_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>MAS, No MSE, Mean only(baseline)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align="center"><b>Baseline</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/179_mle_om_wg.wav">
+                </audio></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="center">MAS, No MSE</td>
+            <td align="center">MAS, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>MAS alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/179_lmy_mle_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/179_lmy_mle_mse_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>CTC, No MSE</td>
+            <td>CTC, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>CTC alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/179_lmy_ctc_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/179_lmy_ctc_mse_wg.wav">
+                </audio></td>
+        </tr>
+    </table>
+
+    <br><br>
+
+    <table align="center">
+        <p align="center"><b>보톡스 주사는 별로 안 아픈 거로 알고 있어요.</b></p>
+        <tr align="center">
+            <td width="200"></td>
+            <td>Ground Truth(original wav)</td>
+            <td>Ground Truth(WaveGrad)</td>
+        </tr>
+        <tr>
+            <td align="center"><b>Ground Truth</b></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/228_ori.wav">
+                </audio></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/228_gt_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>MAS, No MSE, Mean only(baseline)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align="center"><b>Baseline</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/228_mle_om_wg.wav">
+                </audio></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="center">MAS, No MSE</td>
+            <td align="center">MAS, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>MAS alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/228_lmy_mle_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/228_lmy_mle_mse_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>CTC, No MSE</td>
+            <td>CTC, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>CTC alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/228_lmy_ctc_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/228_lmy_ctc_mse_wg.wav">
+                </audio></td>
+        </tr>
+    </table>
+
+    <br><br>
+
+    <table align="center">
+        <p align="center"><b>삼층, 가전매장 앞이요.</b></p>
+        <tr align="center">
+            <td width="200"></td>
+            <td>Ground Truth(original wav)</td>
+            <td>Ground Truth(WaveGrad)</td>
+        </tr>
+        <tr>
+            <td align="center"><b>Ground Truth</b></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/451_ori.wav">
+                </audio></td>
+            <td align="center"><audio controls preload="none">
+                    <source src="wavs/glowtts/451_gt_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>MAS, No MSE, Mean only(baseline)</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align="center"><b>Baseline</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/451_mle_om_wg.wav">
+                </audio></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="center">MAS, No MSE</td>
+            <td align="center">MAS, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>MAS alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/451_lmy_mle_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/451_lmy_mle_mse_wg.wav">
+                </audio></td>
+        </tr>
+        <tr align="center">
+            <td></td>
+            <td>CTC, No MSE</td>
+            <td>CTC, MSE</td>
+        </tr>
+        <tr>
+            <td align="center"><b>CTC alignment</b></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/451_lmy_ctc_wg.wav">
+                </audio></td>
+            <td><audio controls preload="none">
+                    <source src="wavs/glowtts/451_lmy_ctc_mse_wg.wav">
+                </audio></td>
+        </tr>
+    </table>
+
     <h2>Reference</h2>
     <h3>Glow-TTS: A Generative Flow for Text-to-Speech via Monotonic Alignment Search</h3>
     <ul>
@@ -45,341 +451,6 @@
         <li>Paper : <a href="https://www.cs.toronto.edu/~graves/icml_2006.pdf">https://www.cs.toronto.edu/~graves/icml_2006.pdf</a></li>
         <li>Code : <a href="https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html">https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html</a></li>
     </ul>
-
-    <h2>Glow-TTS experiments</h2>
-    <h3>Abstract</h3>
-    Glow-TTS is a non-autoregressive text-to-speech(TTS) model without any guidance about alignment such as external aligners. Glow-TTS uses Monotonic Alignment Search(MAS) to calculate the best path matching between text sequence and melspectrogram. However, MAS is inefficient and unstable because it searches only one optimal path. Therefore, I propose a more efficient and stable training method by introducing Connectionist Temporal Classification(CTC) instead of MAS. In addition, like other TTS models, Mean Squared Error(MSE) loss is added and trained to obtain high quality.
-    
-
-    <h3>Glow-TTS structure</h3>
-    Like otehr non-autoregressive TTS model, Glow-TTS is largely composed of three parts; <b>text encoder</b>, <b>duration predictor</b>, <b>melspectrogram decoder</b>. <br><br>
-
-    The <b>encoder</b> extracts the linguistic information from text sequence. The text is in the form of phonemes or graphemes. The previous TTS model, like Tacotron, use variation of RNN(LSTM, GRU) to encoder text sequence. TTS models after tacotron, like transformer TTS, fastspeech, and Glow-TTS, are calculated in parallel using an encoder with a self-attention structure instead of an RNN. <br><br>
-
-    The duration predictor predicts the length of each phoneme based on linguistic information from the encoder. In other non-autoregressive models, a duration predictor is trained through a extra alignment label, such as teacher model's alignment or external aligner. In Glow-TTS, however, the <b>duration predictor</b> is trained through alignment information from an optimal path obtained through MAS. <br><br>
-
-    The <b>decoder</b> is a flow-based glow model, so it is invertible between the melspectrogram and z. During training, the decoder converts the melspectrogram to z and is trained to match the linguistic information extracted from the encoder well. On the contrary, during inference, the linguistic information extracted from the encoder is duplicated for a duration and then converted into a melspectrogram through a decoder.
-
-    <img src="images/glow-tts.svg" style="display: block; margin: 0 auto; max-width:700px">
-    
-
-    <h3>Glow-TTS alignment</h3>
-    MAS is the most important part of Glow-TTS. Due to MAS, Glow-TTS does not require extra alignment information between text and melspectrogram. MAS calculates the likelihood between the text information from encoder and melspectrogram information from decoder. Based on the likelihood, MAS searches for the most optimal path, and matches the text sequence and melspectrogram. In MAS, after calculating the likelihood between each phoneme and mel frame, based on this, greedyly calculates the Q value to search for an optimal path. <br><br>
-
-    This MAS method is unstable and inefficient in that it greedily searches only one optimal path. In particular, since both the encoder and the decoder were less trained in the early training period, the optimal path searched by MAS cannot be trusted. Because this optimal path affects training for both encoder, decoder and duration predictor, the training of the entire model becomes unstable. In addition, it is inefficient because it is difficult to search for various paths by training only one path at a time. <br><br>
-
-    On the other hand, CTC method is more efficient and stable than MAS because it searches all possible paths. CTC calculates probability values for all possible paths, and considers all paths by calculating the sum of weights for possible paths using this as a weight. Therefore, unlike the MAS method, it can train stably even at the beginning of training, and it is efficient because it considers all possible paths.
-    <img src="images/mas_ctc.svg" style="display: block; margin: 0 auto;">
-    
-    
-    <h3>Glow-TTS MSE loss</h3>
-    The loss function of Glow-TTS consists of 3 parts; log likelihood matched alignment, log determinant of glow decoder, MSE loss of duration. Among them, the MSE loss of duration is designed to affect only the duration predictor because the gradient is not connected to the encoder. The result of the decoder affects the matching result of the alignment. Therefore, the encoder is directly affected by the log likelihood and indirectly by the log determinant. On the other hand, the decoder is directly affected by both log likelihood and log determinant. <br><br>
-    
-    The main loss function of most TTS models is the MSE loss of the melspectrogram. This type of loss term is a term derived from the log likelihood of the normal distribution assuming unit variance with the target melspectrogram as mean. Since the TTS model is basically a generative model that generates data called melspectrogram when a text input is given, this type of MSE loss is mainly used for loss function. On the other hand, since the glow-TTS model uses an invertible glow-based decoder, the model is trained by comparing latent variables rather than melspectrograms.<br><br>
-    
-    By adding MSE loss to the Glow-TTS model, more efficient and sharp training can be performed. Density of data space are changed through the processes of transforming melspectrogram to latent variable in the Glow-TTS decoder. Therefore, loss of latent variables may not be uniformly affected in the melspectrogram space due to distortion during the transforming process. However, by adding the MSE loss for the space of the melspectrogram, the performance of the synthesis result can be improved more efficiently and directly. <br><br>    
-    <img src="images/normal_flow.svg" style="display: block; margin: 0 auto;">
-    
-    
-    <h3>Glow-TTS experiment</h3>
-    The performance of models according to the alignment method of Glow-TTS was compared. In addition, the performance according to the MSE loss was also compared. In the original Glow-TTS paper, the sigma from the encoder was assumed to be 1, and only the mean was trained. However, in order to increase the degree of freedom of the model, the sigma of the model was also trained like mean. As suggested in the original paper, the model without training sigma was also trained and compared.<br><br>
-
-    In the experiment, Glow-TTS was trained under a total of four different conditions depending on whether MAS or CTC was used as an alignment and whether or not MSE loss was trained. In addition, for the baseline, a model trained with MAS under the mean only condition that was tested in the original paper was also trained. Models with a total of 5 conditions were trained and compared for the same data after only 50k iteration. <br><br>
-
-    To compare the models' performance, a single female speaker's voice was used. The total length of the voice is about 9 hours, and consists of monologue and dialogue. 10% of the total data were randomly selected, configured as a test set, and the model was trained with the remaining data. As a vocoder, WaveGrad trained on the same data that Glow-TTS was trained was used.
-
-    <h2>Experiment Result</h2>    
-        
-    <h3>Monologue</h3>
-    <br>
-    
-    <table align="center">
-       <p align="center"><b>이천십오년 기준으로 이탈리아 클럽팀이 압도적으로 우승 경력이 많으니 그 팀의 전략을 배워야 해요.</b></p>
-        <tr align="center">
-            <td colspan="3">Ground Truth(original wav)</td>
-            <td colspan="3">Ground Truth(WaveGrad)</td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_ori.wav">
-                </audio></td>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_gt_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2">MAS, No MSE, Mean only(baseline)</td>
-            <td colspan="2">MAS, No MSE</td>
-            <td colspan="2">MAS, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_mle_om_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_lmy_mle_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_lmy_mle_mse_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2"></td>
-            <td colspan="2">CTC, No MSE</td>
-            <td colspan="2">CTC, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_lmy_ctc_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/032_lmy_ctc_mse_wg.wav">
-                </audio></td>
-        </tr>
-    </table>
-    
-    <br><br>
-    
-    <table align="center">
-       <p align="center"><b>코코넛 워터나 코코넛 밀크 등을 부어 잔얼음을 띄웠어요.</b></p>
-        <tr align="center">
-            <td colspan="3">Ground Truth(original wav)</td>
-            <td colspan="3">Ground Truth(WaveGrad)</td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_ori.wav">
-                </audio></td>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_gt_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2">MAS, No MSE, Mean only(baseline)</td>
-            <td colspan="2">MAS, No MSE</td>
-            <td colspan="2">MAS, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_mle_om_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_lmy_mle_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_lmy_mle_mse_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2"></td>
-            <td colspan="2">CTC, No MSE</td>
-            <td colspan="2">CTC, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_lmy_ctc_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/052_lmy_ctc_mse_wg.wav">
-                </audio></td>
-        </tr>
-    </table>
-    
-    <br><br>
-    
-    <table align="center">
-       <p align="center"><b>여성 다이버가 수중 마이크로 물고기에 대해 설명해주며 먹이를 주는 수중 쇼와 수족관 뒤편을 탐험하는 가이드 투어 등이 있다.</b></p>
-        <tr align="center">
-            <td colspan="3">Ground Truth(original wav)</td>
-            <td colspan="3">Ground Truth(WaveGrad)</td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_ori.wav">
-                </audio></td>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_gt_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2">MAS, No MSE, Mean only(baseline)</td>
-            <td colspan="2">MAS, No MSE</td>
-            <td colspan="2">MAS, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_mle_om_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_lmy_mle_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_lmy_mle_mse_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2"></td>
-            <td colspan="2">CTC, No MSE</td>
-            <td colspan="2">CTC, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_lmy_ctc_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/069_lmy_ctc_mse_wg.wav">
-                </audio></td>
-        </tr>
-    </table>
-    
-    <h3>Dilogue</h3>
-    <br>
-    
-    <table align="center">
-       <p align="center"><b>검색해보니 다양하게 나오는걸요? 당신도 한번 검색해보세요.</b></p>
-        <tr align="center">
-            <td colspan="3">Ground Truth(original wav)</td>
-            <td colspan="3">Ground Truth(WaveGrad)</td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_ori.wav">
-                </audio></td>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_gt_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2">MAS, No MSE, Mean only(baseline)</td>
-            <td colspan="2">MAS, No MSE</td>
-            <td colspan="2">MAS, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_mle_om_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_lmy_mle_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_lmy_mle_mse_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2"></td>
-            <td colspan="2">CTC, No MSE</td>
-            <td colspan="2">CTC, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_lmy_ctc_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/179_lmy_ctc_mse_wg.wav">
-                </audio></td>
-        </tr>
-    </table>
-    
-    <br><br>
-    
-    <table align="center">
-       <p align="center"><b>보톡스 주사는 별로 안 아픈 거로 알고 있어요.</b></p>
-        <tr align="center">
-            <td colspan="3">Ground Truth(original wav)</td>
-            <td colspan="3">Ground Truth(WaveGrad)</td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_ori.wav">
-                </audio></td>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_gt_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2">MAS, No MSE, Mean only(baseline)</td>
-            <td colspan="2">MAS, No MSE</td>
-            <td colspan="2">MAS, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_mle_om_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_lmy_mle_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_lmy_mle_mse_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2"></td>
-            <td colspan="2">CTC, No MSE</td>
-            <td colspan="2">CTC, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_lmy_ctc_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/228_lmy_ctc_mse_wg.wav">
-                </audio></td>
-        </tr>
-    </table>
-    
-    <br><br>
-    
-    <table align="center">
-       <p align="center"><b>삼층, 가전매장 앞이요.</b></p>
-        <tr align="center">
-            <td colspan="3">Ground Truth(original wav)</td>
-            <td colspan="3">Ground Truth(WaveGrad)</td>
-        </tr>
-        <tr>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_ori.wav">
-                </audio></td>
-            <td colspan="3" align="center"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_gt_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2">MAS, No MSE, Mean only(baseline)</td>
-            <td colspan="2">MAS, No MSE</td>
-            <td colspan="2">MAS, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_mle_om_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_lmy_mle_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_lmy_mle_mse_wg.wav">
-                </audio></td>
-        </tr>
-        <tr align="center">
-            <td colspan="2"></td>
-            <td colspan="2">CTC, No MSE</td>
-            <td colspan="2">CTC, MSE</td>
-        </tr>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_lmy_ctc_wg.wav">
-                </audio></td>
-            <td colspan="2"><audio controls preload="none">
-                    <source src="wavs/glowtts/451_lmy_ctc_mse_wg.wav">
-                </audio></td>
-        </tr>
-    </table>
-
 
 </body>
 

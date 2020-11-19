@@ -41,6 +41,9 @@
     The <b>decoder</b> is a flow-based glow model, so it is invertible between the melspectrogram and z. During training, the decoder converts the melspectrogram to z and is trained to match the linguistic information extracted from the encoder well. On the contrary, during inference, the linguistic information extracted from the encoder is duplicated for a duration and then converted into a melspectrogram through a decoder.
 
     <img src="images/glow-tts.svg" style="display: block; margin: 0 auto; max-width:700px">
+    <figcaption align="center"><b>Architecture of Glow-TTS</b></figcaption>
+    
+    <br><br>
 
     <h2>Glow-TTS with better training</h2>
     <h3>Glow-TTS alignment</h3>
@@ -50,6 +53,10 @@
 
     On the other hand, CTC method is more efficient and stable than MAS because it searches all possible paths. CTC calculates probability values for all possible paths, and considers all paths by calculating the sum of weights for possible paths using this as a weight. Therefore, unlike the MAS method, it can train stably even at the beginning of training, and it is efficient because it considers all possible paths.
     <img src="images/mas_ctc.svg" style="display: block; margin: 0 auto;">
+    
+    <figcaption align="center"><b>Compare of MAS and CTC alignment</b></figcaption>
+    
+    <br><br>
 
 
     <h3>Glow-TTS MSE loss</h3>
@@ -59,6 +66,10 @@
 
     By adding MSE loss to the Glow-TTS model, more efficient and sharp training can be performed. Density of data space are changed through the processes of transforming melspectrogram to latent variable in the Glow-TTS decoder. Therefore, loss of latent variables may not be uniformly affected in the melspectrogram space due to distortion during the transforming process. However, by adding the MSE loss for the space of the melspectrogram, the performance of the synthesis result can be improved more efficiently and directly. <br><br>
     <img src="images/normal_flow.svg" style="display: block; margin: 0 auto;">
+    
+    <figcaption align="center"><b>Invertible normalizing flow (Glow)</b></figcaption>
+    
+    <br><br>
 
     <h2>Experiment</h2>
 
@@ -249,6 +260,8 @@
                 </audio></td>
         </tr>
     </table>
+    
+    <br><br>
 
     <h3>Dilogue</h3>
     <br>
@@ -431,6 +444,8 @@
         </tr>
     </table>
 
+    <br><br>
+    
     <h2>Reference</h2>
     <h3>Glow-TTS: A Generative Flow for Text-to-Speech via Monotonic Alignment Search</h3>
     <ul>

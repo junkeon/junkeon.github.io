@@ -1,0 +1,112 @@
+<html>
+
+<head></head>
+<style>
+    body {}
+
+    .title {
+        font-size: 2em;
+    }
+
+    label {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .main {
+        display: block;
+        margin: 15% auto;
+        padding: 30;
+        max-width: 1000;
+
+        background: #D7DBDD;
+    }
+
+    .main>div {
+        padding: 10;
+        margin: 10;
+    }
+
+    .control {
+        background: #F5CBA7;
+    }
+
+    .control>div {
+        padding: 10;
+    }
+
+    textarea {
+        width: 100%;
+        height: 100;
+        resize: none;
+        padding: 10;
+        margin-top: 10;
+    }
+
+    .status {
+        position: relative;
+        top: -50;
+        right: 15;
+        float: right;
+    }
+
+    .status>label {
+        color: gray;
+    }
+
+    .synthesize {
+        padding: 10 15;
+        font-size: 1em;
+    }
+
+
+    .setting>div {
+        float: left;
+        margin-right: 20;
+        
+    }
+</style>
+
+<body>
+    <div class="main">
+        <div class="title">
+            Text-to-Speech Demo
+        </div>
+        <div class="disc">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque pellentesque commodo sem ut porta. Curabitur mattis lorem faucibus, congue libero sit amet, mattis nisi. Maecenas ullamcorper, lacus vitae luctus pharetra, sapien augue rutrum urna, in malesuada lectus sapien ac lectus. Nulla facilisi. Aenean quis nunc eleifend, gravida massa a, rhoncus felis. Cras turpis est, vestibulum eget metus sed, volutpat fringilla metus. Vivamus ultricies gravida iaculis. Integer id scelerisque eros. Quisque faucibus felis quis mi blandit, ac pretium eros accumsan.
+        </div>
+        <div class="control">
+            <div class="setting">
+                <div class="spk_p">
+                    <label for="speaker">Speaker : </label>
+                </div>
+                <div>
+                    <select style="width: 100">
+                        <option value="female1">Female1</option>
+                    </select>
+                </div>
+
+                <div class="spe_p">
+                    <label>Speed : </label>
+                </div>
+                <div>
+                    <input type="range" min="-50" max="50" step="10" value="0">
+                </div>
+            </div>
+
+            <div>
+                <textarea autofocus=True maxlength="200"></textarea>
+            </div>
+
+            <div class="status">
+                <label>(100/200)</label>
+            </div>
+            <div class="listen" align="center">
+                <button class="synthesize">Listen</button>
+            </div>
+        </div>
+    </div>
+</body></html>

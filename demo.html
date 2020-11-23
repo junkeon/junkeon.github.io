@@ -19,11 +19,12 @@
 
     .main {
         display: block;
-        margin: 15% auto;
+        margin: 50 auto 0;
         padding: 30;
         max-width: 1000;
-
-        background: #D7DBDD;
+        background: #EBF5FB;
+        border: 1px solid gray;
+        border-radius: 1em;
     }
 
     .main>div {
@@ -32,11 +33,13 @@
     }
 
     .control {
-        background: #F5CBA7;
+        border: 1px solid gray;
+        border-radius: 0.5em;
+        background: #5DADE2;
     }
 
     .control>div {
-        padding: 10;
+        padding: 5;
     }
 
     textarea {
@@ -44,7 +47,7 @@
         height: 100;
         resize: none;
         padding: 10;
-        margin-top: 10;
+        margin-top: 5;
     }
 
     .status {
@@ -61,15 +64,29 @@
     .synthesize {
         padding: 10 15;
         font-size: 1em;
+        color: white;
+        border: 1px solid white;
+        background: #5499C7;
     }
 
 
     .setting>div {
         float: left;
         margin-right: 20;
-        
+
     }
+
 </style>
+
+<script>
+    str_leng = document.getElementsByClassName("myTextarea")
+
+    function keyup() {
+        document.getElementsByClassName("text_len")[0].textContent = str_leng[0].value.length + " / 200"
+    }
+
+</script>
+
 
 <body>
     <div class="main">
@@ -80,33 +97,32 @@
         </div>
         <div class="control">
             <div class="setting">
-                <div class="spk_p">
-                    <label for="speaker">Speaker : </label>
-                </div>
-                <div>
-                    <select style="width: 100">
-                        <option value="female1">Female1</option>
-                    </select>
-                </div>
-
-                <div class="spe_p">
-                    <label>Speed : </label>
-                </div>
-                <div>
-                    <input type="range" min="-50" max="50" step="10" value="0">
-                </div>
+                <table>
+                    <td width="80"><label for="speaker">Speaker : </label></td>
+                    <td width="130">
+                        <select style="width: 100">
+                            <option value="female1">Female1</option>
+                        </select>
+                    </td>
+                    <td width="65"><label>Speed : </label></td>
+                    <td width="130"><input type="range" min="-50" max="50" step="10" value="0"></td>
+                </table>
             </div>
 
             <div>
-                <textarea autofocus=True maxlength="200"></textarea>
+                <textarea autofocus=True maxlength="200" class="myTextarea" onkeyup="keyup()"></textarea>
             </div>
 
             <div class="status">
-                <label>(100/200)</label>
+                <label class="text_len">0 / 200</label>
             </div>
+
             <div class="listen" align="center">
                 <button class="synthesize">Listen</button>
             </div>
         </div>
+
     </div>
-</body></html>
+</body>
+
+</html>
